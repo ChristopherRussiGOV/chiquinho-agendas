@@ -147,7 +147,7 @@ def register():
         elif User.query.filter_by(email=email).first():
             flash("Este e-mail já está cadastrado.", "error")
         else:
-            user = User(username=username, email=email, role="professor")
+            user = User(username=username, email=email, role="visualizador")
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
