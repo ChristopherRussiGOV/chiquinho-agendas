@@ -4,9 +4,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "chave-secreta-agendamento-salas-2026")
 
-_database_url = os.environ.get("DATABASE_URL")
+_database_url = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+    or os.environ.get("POSTGRES_PRISMA_URL")
+)
 if _database_url:
-    # Render usa postgres:// — SQLAlchemy precisa de postgresql://
+    # Vercel/Render usam postgres:// — SQLAlchemy precisa de postgresql://
     if _database_url.startswith("postgres://"):
         _database_url = _database_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = _database_url
