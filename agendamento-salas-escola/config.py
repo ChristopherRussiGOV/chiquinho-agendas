@@ -20,14 +20,14 @@ else:
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # E-mails institucionais permitidos (ajuste o domínio da sua escola)
-ALLOWED_EMAIL_DOMAINS = ["escola.edu.br", "etec.edu.br", "edu.br"]
+ALLOWED_EMAIL_DOMAINS = ["al.educacao.sp.gov.br", "prof.educacao.sp.gov.br"]
 
 # SMTP para notificações (opcional — deixe vazio para registrar no console)
 SMTP_HOST = os.environ.get("SMTP_HOST", "")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-SMTP_FROM = os.environ.get("SMTP_FROM", "agendamento@escola.edu.br")
+SMTP_FROM = os.environ.get("SMTP_FROM", "agendamento@prof.educacao.sp.gov.br")
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
 
 DEFAULT_TIME_LIST_1 = [
