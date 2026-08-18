@@ -188,12 +188,12 @@ def admin_delete_user(user_id):
     # Impede que o admin logado exclua a si mesmo
     if user_id == current_user.id:
         flash("Você não pode excluir sua própria conta.", "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_painel"))
 
     user = db.session.get(User, user_id)
     if not user:
         flash("Usuário não encontrado.", "error")
-        return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("admin_painel"))
 
     try:
         # Remove todos os agendamentos vinculados a esse usuário antes de deletá-lo
@@ -208,7 +208,7 @@ def admin_delete_user(user_id):
         db.session.rollback()
         flash("Erro ao excluir usuário. Tente novamente.", "error")
 
-    return redirect(url_for("admin_dashboard"))
+    return redirect(url_for("admin_painel"))
 
 
 @app.route("/logout")
