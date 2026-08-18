@@ -137,7 +137,7 @@ def init_default_data():
             email="admin@ds.vanguards.vercel.app",
             role="admin",
         )
-        admin.set_password("adminvgsproati")
+        admin.set_password("admin123provisoriopasswordCHIQUINHO")
         db.session.add(admin)
 
     if not SystemConfig.query.filter_by(key="time_slots").first():
