@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Agendar Sala{% endblock %}
+{% block content %}
+<h1>Agendar Sala</h1>
+<p class="subtitle">Selecione a sala, data e horário de utilização</p>
+
+<form method="POST" class="form form-wide">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="room">Sala</label>
+            <select id="room" name="room" required>
+                <option value="">Selecione...</option>
+                {% for room in ROOMS %}
+                <option value="{{ room }}">Sala {{ room }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="booking_date">Data</label>
+            <input type="date" id="booking_date" name="booking_date" required min="{{ min_date }}">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="start_time">Horário inicial</label>
+            <select id="start_time" name="start_time" required>
+                <option value="">Selecione...</option>
+                {% for slot in time_slots %}
+                <option value="{{ slot }}">{{ slot }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="end_time">Horário final</label>
+            <select id="end_time" name="end_time" required>
+                <option value="">Selecione...</option>
+                {% for slot in time_slots %}
+                <option value="{{ slot }}">{{ slot }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
+</form>
+
+<div class="info-box">
+    <h3>Horários disponíveis (lista ativa)</h3>
+    <p>{{ time_slots | join(', ') }}</p>
+</div>
+{% endblock %}

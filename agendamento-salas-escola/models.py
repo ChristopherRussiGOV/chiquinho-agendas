@@ -1,0 +1,153 @@
+import json
+from datetime import date, datetime
+
+from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from config import DEFAULT_TIME_LIST_1, DEFAULT_TIME_LIST_2
+from extensions import db
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=True)
+    role = db.Column(db.String(20), default="professor", nullable=False)
+    must_reset_password = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    bookings = db.relationship("Booking", backref="teacher", lazy=True)
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+        self.must_reset_password = False
+
+    def check_password(self, password: str) -> bool:
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"
+
+    @property
+    def is_moderador(self) -> bool:
+        return self.role == "moderador"
+
+    @property
+    def is_professor(self) -> bool:
+        return self.role == "professor"
+
+    @property
+    def is_visualizador(self) -> bool:
+        return self.role == "visualizador"
+
+    def can_manage_users(self) -> bool:
+        return self.role in ("admin", "moderador")
+
+    def can_book(self) -> bool:
+        return self.role == "professor"
+
+    def can_view_bookings(self) -> bool:
+        return self.role in ("professor", "visualizador", "admin", "moderador")
+
+
+class Booking(db.Model):
+    __tablename__ = "bookings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    room = db.Column(db.String(2), nullable=False)
+    booking_date = db.Column(db.Date, nullable=False)
+    start_time = db.Column(db.String(5), nullable=False)
+    end_time = db.Column(db.String(5), nullable=False)
+    status = db.Column(db.String(20), default="agendado", nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "room", "booking_date", "start_time", name="unique_room_slot"
+        ),
+    )
+
+
+class SystemConfig(db.Model):
+    __tablename__ = "system_config"
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
+
+    @staticmethod
+    def get(key: str, default=None):
+        row = SystemConfig.query.filter_by(key=key).first()
+        if not row:
+            return default
+        try:
+            return json.loads(row.value)
+        except json.JSONDecodeError:
+            return row.value
+
+    @staticmethod
+    def set(key: str, value) -> None:
+        serialized = json.dumps(value) if not isinstance(value, str) else value
+        row = SystemConfig.query.filter_by(key=key).first()
+        if row:
+            row.value = serialized
+        else:
+            db.session.add(SystemConfig(key=key, value=serialized))
+
+    @staticmethod
+    def get_time_config():
+        config = SystemConfig.get("time_slots")
+        if not config:
+            config = {
+                "active_list": "lista1",
+                "lista1": DEFAULT_TIME_LIST_1,
+                "lista2": DEFAULT_TIME_LIST_2,
+            }
+            SystemConfig.set("time_slots", config)
+            db.session.commit()
+        return config
+
+    @staticmethod
+    def get_active_time_slots():
+        config = SystemConfig.get_time_config()
+        active = config.get("active_list", "lista1")
+        return config.get(active, DEFAULT_TIME_LIST_1)
+
+
+class NotificationEmail(db.Model):
+    __tablename__ = "notification_emails"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+def init_default_data():
+    if not User.query.filter_by(username="admin").first():
+        admin = User(
+            username="admin",
+            email="admin@escola.edu.br",
+            role="admin",
+        )
+        admin.set_password("admin123")
+        db.session.add(admin)
+
+    if not SystemConfig.query.filter_by(key="time_slots").first():
+        SystemConfig.set(
+            "time_slots",
+            {
+                "active_list": "lista1",
+                "lista1": DEFAULT_TIME_LIST_1,
+                "lista2": DEFAULT_TIME_LIST_2,
+            },
+        )
+
+    db.session.commit()

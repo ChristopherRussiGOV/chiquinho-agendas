@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Início{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Bem-vindo(a), {{ current_user.username }}!</h1>
+    <p class="subtitle">Função: <span class="badge badge-{{ current_user.role }}">{{ current_user.role }}</span></p>
+
+    <div class="cards-grid">
+        {% if current_user.can_book() %}
+        <a href="{{ url_for('agendar') }}" class="card card-link">
+            <h3>Agendar Sala</h3>
+            <p>Reserve uma das salas 01 a 04 para sua aula ou atividade.</p>
+        </a>
+        {% endif %}
+
+        {% if current_user.can_view_bookings() %}
+        <a href="{{ url_for('agendamentos') }}" class="card card-link">
+            <h3>Ver Agendamentos</h3>
+            <p>Consulte a tabela de agendamentos com horários e professores.</p>
+        </a>
+        {% endif %}
+
+        {% if current_user.can_manage_users() or current_user.is_admin %}
+        <a href="{{ url_for('admin_panel') }}" class="card card-link">
+            <h3>Painel Administrativo</h3>
+            <p>Gerencie usuários, agendamentos, horários e notificações.</p>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

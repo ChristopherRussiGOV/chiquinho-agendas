@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — Agendamento de Salas{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <h1>Criar Conta</h1>
+    <p class="subtitle">Use seu e-mail institucional</p>
+
+    <form method="POST" class="form">
+        <label for="username">Nome de usuário</label>
+        <input type="text" id="username" name="username" required minlength="3"
+               placeholder="Ex: prof.joao">
+
+        <label for="email">E-mail institucional</label>
+        <input type="email" id="email" name="email" required
+               placeholder="seu.nome@escola.edu.br">
+
+        <label for="password">Senha</label>
+        <input type="password" id="password" name="password" required minlength="6">
+
+        <label for="confirm_password">Confirmar senha</label>
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="6">
+
+        <button type="submit" class="btn btn-primary btn-block">Cadastrar</button>
+    </form>
+
+    <p class="auth-link">Já tem conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+</div>
+{% endblock %}

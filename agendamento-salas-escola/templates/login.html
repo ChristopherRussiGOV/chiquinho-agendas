@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login — Agendamento de Salas{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <h1>Entrar</h1>
+    <p class="subtitle">Sistema de agendamento de salas escolares</p>
+
+    <form method="POST" class="form">
+        <label for="identifier">Usuário ou E-mail</label>
+        <input type="text" id="identifier" name="identifier" required autofocus
+               placeholder="seu.usuario ou email@escola.edu.br">
+
+        <label for="password">Senha</label>
+        <input type="password" id="password" name="password"
+               placeholder="Deixe em branco se precisar redefinir">
+
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+
+    <p class="auth-link">Não tem conta? <a href="{{ url_for('register') }}">Cadastre-se</a></p>
+</div>
+{% endblock %}

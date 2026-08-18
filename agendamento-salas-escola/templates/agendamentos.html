@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Agendamentos{% endblock %}
+{% block content %}
+<h1>Tabela de Agendamentos</h1>
+
+<form method="GET" class="filter-bar">
+    <label for="date">Filtrar por data:</label>
+    <input type="date" id="date" name="date" value="{{ filter_date }}">
+    <button type="submit" class="btn btn-secondary">Filtrar</button>
+    {% if filter_date %}
+    <a href="{{ url_for('agendamentos') }}" class="btn btn-outline">Limpar</a>
+    {% endif %}
+</form>
+
+{% if bookings %}
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Sala</th>
+                <th>Data</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Professor</th>
+                <th>Status</th>
+                {% if current_user.can_book() %}
+                <th>Ações</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in bookings %}
+            <tr>
+                <td>Sala {{ b.room }}</td>
+                <td>{{ b.booking_date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ b.start_time }}</td>
+                <td>{{ b.end_time }}</td>
+                <td>{{ b.teacher.username }}</td>
+                <td><span class="badge badge-status badge-{{ b.status }}">{{ b.status }}</span></td>
+                {% if current_user.can_book() %}
+                <td>
+                    {% if b.teacher_id == current_user.id and b.status != 'presente' %}
+                    <form method="POST" action="{{ url_for('marcar_presente', booking_id=b.id) }}" class="inline-form">
+                        <button type="submit" class="btn btn-sm btn-success">Estou presente</button>
+                    </form>
+                    {% elif b.teacher_id == current_user.id and b.status == 'presente' %}
+                    <span class="text-muted">Presente ✓</span>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty-state">Nenhum agendamento encontrado.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Administração{% endblock %}
+{% block content %}
+<h1>Painel Administrativo</h1>
+
+<section class="admin-section">
+    <h2>Agendamentos</h2>
+    {% if is_admin %}
+    <form method="POST" action="{{ url_for('admin_delete_all_bookings') }}" class="inline-form danger-zone"
+          onsubmit="return confirm('Tem certeza que deseja excluir TODOS os agendamentos?');">
+        <button type="submit" class="btn btn-danger">Excluir todos os agendamentos</button>
+    </form>
+    {% endif %}
+
+    {% if bookings %}
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Sala</th>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Professor</th>
+                    <th>Status</th>
+                    {% if is_admin %}
+                    <th>Ações</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td>Sala {{ b.room }}</td>
+                    <td>{{ b.booking_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ b.start_time }} — {{ b.end_time }}</td>
+                    <td>{{ b.teacher.username }}</td>
+                    <td><span class="badge badge-status badge-{{ b.status }}">{{ b.status }}</span></td>
+                    {% if is_admin %}
+                    <td class="actions-cell">
+                        <form method="POST" action="{{ url_for('admin_update_status', booking_id=b.id) }}" class="inline-form">
+                            <select name="status">
+                                {% for s in STATUSES %}
+                                <option value="{{ s }}" {% if b.status == s %}selected{% endif %}>{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-secondary">Alterar</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin_delete_booking', booking_id=b.id) }}" class="inline-form"
+                              onsubmit="return confirm('Excluir este agendamento?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-state">Nenhum agendamento registrado.</p>
+    {% endif %}
+</section>
+
+<section class="admin-section">
+    <h2>Usuários</h2>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>E-mail</th>
+                    <th>Função</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+                    <td class="actions-cell">
+                        {% if is_admin and u.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin_update_role', user_id=u.id) }}" class="inline-form">
+                            <select name="role">
+                                {% for r in ROLES %}
+                                <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-secondary">Salvar</button>
+                        </form>
+                        {% endif %}
+                        <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" class="inline-form"
+                              onsubmit="return confirm('Redefinir senha de {{ u.username }}?');">
+                            <button type="submit" class="btn btn-sm btn-warning">Redefinir senha</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="admin-section">
+    <h2>Horários</h2>
+    <p>Lista ativa: <strong>{{ time_config.active_list }}</strong></p>
+
+    <form method="POST" action="{{ url_for('admin_switch_time_list') }}" class="inline-form">
+        <button type="submit" class="btn btn-secondary">
+            Alternar para {{ 'lista2' if time_config.active_list == 'lista1' else 'lista1' }}
+        </button>
+    </form>
+
+    {% if is_admin %}
+    <form method="POST" action="{{ url_for('admin_update_time_slots') }}" class="form form-wide">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="lista1">Lista 1 (um horário por linha)</label>
+                <textarea id="lista1" name="lista1" rows="8">{{ time_config.lista1 | join('\n') }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="lista2">Lista 2 (um horário por linha)</label>
+                <textarea id="lista2" name="lista2" rows="8">{{ time_config.lista2 | join('\n') }}</textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar horários</button>
+    </form>
+    {% else %}
+    <div class="info-box">
+        <p><strong>Lista 1:</strong> {{ time_config.lista1 | join(', ') }}</p>
+        <p><strong>Lista 2:</strong> {{ time_config.lista2 | join(', ') }}</p>
+    </div>
+    {% endif %}
+</section>
+
+{% if is_admin %}
+<section class="admin-section">
+    <h2>Notificações por E-mail</h2>
+    <p>Estes e-mails receberão aviso quando um professor fizer um agendamento.</p>
+
+    <form method="POST" action="{{ url_for('admin_add_notification_email') }}" class="filter-bar">
+        <input type="email" name="email" placeholder="email@escola.edu.br" required>
+        <button type="submit" class="btn btn-primary">Adicionar e-mail</button>
+    </form>
+
+    {% if notification_emails %}
+    <ul class="email-list">
+        {% for e in notification_emails %}
+        <li>
+            {{ e.email }}
+            <form method="POST" action="{{ url_for('admin_delete_notification_email', email_id=e.id) }}" class="inline-form">
+                <button type="submit" class="btn btn-sm btn-danger">Remover</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty-state">Nenhum e-mail cadastrado. Sem SMTP, as notificações aparecem no console do servidor.</p>
+    {% endif %}
+</section>
+{% endif %}
+{% endblock %}
