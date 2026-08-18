@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=True)
-    role = db.Column(db.String(20), default="professor", nullable=False)
+    role = db.Column(db.String(20), default="visualizador", nullable=False)
     must_reset_password = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
