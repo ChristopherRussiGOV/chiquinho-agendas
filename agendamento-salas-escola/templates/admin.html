@@ -96,10 +96,9 @@
                             <button type="submit" class="btn btn-sm btn-warning">Redefinir senha</button>
                         </form>
                     
-                        {# NOVO BOTÃO DE EXCLUIR USUÁRIO #}
                         {% if is_admin and u.id != current_user.id %}
                         <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}" class="inline-form"
-                              onsubmit="return confirm('Tem certeza que deseja EXCLUIR permanentemente o usuário {{ u.username }}? Todos os agendamentos dele também serão apagados.');">
+                              onsubmit="return confirm('Tem certeza que deseja EXCLUIR permanentemente o usuário {{ u.username }}? Todos os agendamentos dele serão apagados.');">
                             <button type="submit" class="btn btn-sm btn-danger">Excluir usuário</button>
                         </form>
                         {% endif %}
