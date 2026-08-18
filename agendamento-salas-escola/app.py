@@ -182,33 +182,30 @@ def set_password():
     flash("Senha definida com sucesso!", "success")
     return redirect(url_for("dashboard"))
 
-@app.route("/admin", methods=["POST"])
-@role_required("admin")  # Alterado para "admin" conforme seu models.py
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@role_required("admin", "moderador")
 def admin_delete_user(user_id):
-    # Impede que o admin logado exclua a si mesmo
-    if user_id == current_user.id:
-        flash("Você não pode excluir sua própria conta.", "error")
-        return redirect(url_for("admin_painel"))
-
     user = db.session.get(User, user_id)
-    if not user:
+    if user:
+        if user.id == current_user.id:
+            flash("Você não pode excluir sua própria conta.", "error")
+            return redirect(url_for("admin_panel"))
+            
+        try:
+            # Remove agendamentos vinculados para evitar erros no banco
+            Booking.query.filter_by(teacher_id=user.id).delete()
+            
+            # Remove o usuário
+            db.session.delete(user)
+            db.session.commit()
+            flash(f"Usuário {user.username} e seus agendamentos foram removidos com sucesso.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Erro ao excluir o usuário no banco de dados.", "error")
+    else:
         flash("Usuário não encontrado.", "error")
-        return redirect(url_for("admin_painel"))
-
-    try:
-        # Remove todos os agendamentos vinculados a esse usuário antes de deletá-lo
-        Booking.query.filter_by(teacher_id=user.id).delete()
         
-        # Deleta o usuário de fato
-        db.session.delete(user)
-        db.session.commit()
-        
-        flash(f"Usuário {user.username} e seus agendamentos foram removidos com sucesso.", "success")
-    except Exception as e:
-        db.session.rollback()
-        flash("Erro ao excluir usuário. Tente novamente.", "error")
-
-    return redirect(url_for("admin_painel"))
+    return redirect(url_for("admin_panel"))
 
 
 @app.route("/logout")
