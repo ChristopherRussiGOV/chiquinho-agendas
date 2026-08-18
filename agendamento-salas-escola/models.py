@@ -134,10 +134,10 @@ def init_default_data():
     if not User.query.filter_by(username="admin").first():
         admin = User(
             username="admin",
-            email="admin@escola.edu.br",
+            email="admin@ds.vanguards.vercel.app",
             role="admin",
         )
-        admin.set_password("admin123")
+        admin.set_password("adminvgsproati")
         db.session.add(admin)
 
     if not SystemConfig.query.filter_by(key="time_slots").first():
