@@ -182,6 +182,34 @@ def set_password():
     flash("Senha definida com sucesso!", "success")
     return redirect(url_for("dashboard"))
 
+@app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
+@role_required("admin")  # Alterado para "admin" conforme seu models.py
+def admin_delete_user(user_id):
+    # Impede que o admin logado exclua a si mesmo
+    if user_id == current_user.id:
+        flash("Você não pode excluir sua própria conta.", "error")
+        return redirect(url_for("admin"))
+
+    user = db.session.get(User, user_id)
+    if not user:
+        flash("Usuário não encontrado.", "error")
+        return redirect(url_for("admin"))
+
+    try:
+        # Remove todos os agendamentos vinculados a esse usuário antes de deletá-lo
+        Booking.query.filter_by(teacher_id=user.id).delete()
+        
+        # Deleta o usuário de fato
+        db.session.delete(user)
+        db.session.commit()
+        
+        flash(f"Usuário {user.username} e seus agendamentos foram removidos com sucesso.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Erro ao excluir usuário. Tente novamente.", "error")
+
+    return redirect(url_for("admin"))
+
 
 @app.route("/logout")
 @login_required
