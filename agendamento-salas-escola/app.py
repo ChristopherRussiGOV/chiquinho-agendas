@@ -182,7 +182,7 @@ def set_password():
     flash("Senha definida com sucesso!", "success")
     return redirect(url_for("dashboard"))
 
-@app.route("/admin/delete-user/<int:user_id>", methods=["POST"])
+@app.route("/admin", methods=["POST"])
 @role_required("admin")  # Alterado para "admin" conforme seu models.py
 def admin_delete_user(user_id):
     # Impede que o admin logado exclua a si mesmo
