@@ -31,9 +31,9 @@
             </thead>
             <tbody>
                 {% for row in schedule_rows %}
-                <tr>
-                    <td class="col-aula">{{ row.aula }}</td>
-                    <td class="col-horario">{{ row.label }}</td>
+                <tr class="schedule-row">
+                    <td class="col-aula col-aula-body"><span class="aula-num">{{ row.aula }}</span></td>
+                    <td class="col-horario col-horario-body"><span class="horario-label">{{ row.label }}</span></td>
                     {% for room in GRID_ROOMS %}
                     {% set cell_key = (room.id, row.start_time, row.end_time) %}
                     {% set booking = schedule_grid.get(cell_key) %}

@@ -11,14 +11,7 @@
     {% endif %}
 
     <div class="cards-grid">
-        {% if current_user.can_book() %}
-        <a href="{{ url_for('agendar') }}" class="card card-link">
-            <h3>Agendar Sala</h3>
-            <p>Formulário completo para reservar salas.</p>
-        </a>
-        {% endif %}
-
-        {% if current_user.can_view_bookings() %}
+        {% if current_user.can_view_bookings() and not current_user.is_professor %}
         <a href="{{ url_for('agendamentos') }}" class="card card-link">
             <h3>Ver Agendamentos</h3>
             <p>

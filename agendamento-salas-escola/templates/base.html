@@ -17,9 +17,6 @@
             {% if not current_user.is_professor %}
             <a href="{{ url_for('dashboard') }}">Início</a>
             {% endif %}
-            {% if current_user.can_book() %}
-            <a href="{{ url_for('agendar') }}">Agendar</a>
-            {% endif %}
             {% if current_user.can_view_bookings() %}
             <a href="{{ url_for('agendamentos') }}">Agendamentos</a>
             {% endif %}

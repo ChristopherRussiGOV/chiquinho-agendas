@@ -346,43 +346,10 @@ def dashboard():
     return render_template("dashboard.html", **context)
 
 
-@app.route("/agendar", methods=["GET", "POST"])
+@app.route("/agendar")
 @role_required("professor")
 def agendar():
-    time_slots = SystemConfig.get_active_time_slots()
-
-    if request.method == "POST":
-        room = request.form.get("room", "")
-        booking_date_str = request.form.get("booking_date", "")
-        start_time = request.form.get("start_time", "")
-        end_time = request.form.get("end_time", "")
-
-        booking_date = parse_booking_date(booking_date_str)
-
-        if room not in config.ROOMS:
-            flash("Sala inválida.", "error")
-        elif not booking_date:
-            flash("Data inválida.", "error")
-        elif booking_date < date.today():
-            flash("Não é possível agendar em datas passadas.", "error")
-        elif start_time not in time_slots or end_time not in time_slots:
-            flash("Horário inválido.", "error")
-        elif start_time >= end_time:
-            flash("O horário final deve ser posterior ao inicial.", "error")
-        else:
-            success, message = create_booking(
-                room, booking_date, start_time, end_time, current_user.id
-            )
-            if success:
-                flash(message, "success")
-                return redirect(url_for("agendamentos"))
-            flash(message, "error")
-
-    return render_template(
-        "agendar.html",
-        time_slots=time_slots,
-        min_date=date.today().isoformat(),
-    )
+    return redirect(url_for("agendamentos"))
 
 
 @app.route("/agendamentos")
