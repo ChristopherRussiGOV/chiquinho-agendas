@@ -23,10 +23,10 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 ALLOWED_EMAIL_DOMAINS = ["al.educacao.sp.gov.br", "prof.educacao.sp.gov.br"]
 
 # SMTP para notificações (opcional — deixe vazio para registrar no console)
-SMTP_HOST = os.environ.get("SMTP_HOST", "//gmail.com")
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "ds.vanguards.data@gmail.com")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "xvsj heyd htra pojc")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "xvsjheydhtrapojc")
 SMTP_FROM = os.environ.get("SMTP_FROM", "ds.vanguards.data@gmail.com")
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
 
