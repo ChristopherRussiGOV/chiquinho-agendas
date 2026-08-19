@@ -11,7 +11,7 @@
             <select id="room" name="room" required>
                 <option value="">Selecione...</option>
                 {% for room in ROOMS %}
-                <option value="{{ room }}">Sala {{ room }}</option>
+                <option value="{{ room }}">{{ ROOM_LABELS.get(room, 'Sala ' ~ room) }}</option>
                 {% endfor %}
             </select>
         </div>

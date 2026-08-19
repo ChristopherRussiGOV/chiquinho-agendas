@@ -2,21 +2,32 @@
 {% block title %}Início{% endblock %}
 {% block content %}
 <div class="dashboard">
-    <h1>Bem-vindo(a), {{ current_user.username }}!</h1>
-    <p class="subtitle">Função: <span class="badge badge-{{ current_user.role }}">{{ current_user.role }}</span></p>
+    {% if current_user.can_view_bookings() and schedule_rows is defined %}
+        {% set form_action = 'dashboard' %}
+        {% include '_schedule_grid.html' %}
+    {% else %}
+        <h1>Bem-vindo(a), {{ current_user.username }}!</h1>
+        <p class="subtitle">Função: <span class="badge badge-{{ current_user.role }}">{{ current_user.role }}</span></p>
+    {% endif %}
 
     <div class="cards-grid">
         {% if current_user.can_book() %}
         <a href="{{ url_for('agendar') }}" class="card card-link">
             <h3>Agendar Sala</h3>
-            <p>Reserve uma das salas 01 a 04 para sua aula ou atividade.</p>
+            <p>Formulário completo para reservar salas.</p>
         </a>
         {% endif %}
 
         {% if current_user.can_view_bookings() %}
         <a href="{{ url_for('agendamentos') }}" class="card card-link">
             <h3>Ver Agendamentos</h3>
-            <p>Consulte a tabela de agendamentos com horários e professores.</p>
+            <p>
+                {% if current_user.role in ('admin', 'moderador') %}
+                Acesse a tabela detalhada e o painel administrativo.
+                {% else %}
+                Consulte a grade de agendamentos por data.
+                {% endif %}
+            </p>
         </a>
         {% endif %}
 

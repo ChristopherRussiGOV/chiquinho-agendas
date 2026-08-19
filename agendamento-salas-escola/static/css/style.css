@@ -44,6 +44,24 @@ body {
 .nav-brand {
     font-weight: 700;
     font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-brand:hover {
+    color: white;
+}
+
+.nav-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    background: white;
 }
 
 .nav-links {
@@ -390,4 +408,212 @@ h2 {
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border);
+}
+
+/* --- Grade de agendamentos --- */
+.schedule-panel {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.schedule-title {
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+}
+
+.schedule-welcome {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.date-nav-form {
+    margin-bottom: 0.75rem;
+}
+
+.date-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.date-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: background 0.15s;
+}
+
+.date-arrow:hover {
+    background: #bfdbfe;
+}
+
+.date-input {
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.date-display {
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.schedule-hint {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.schedule-grid-wrapper {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.schedule-grid {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+    font-size: 0.85rem;
+}
+
+.schedule-grid th,
+.schedule-grid td {
+    border: 1px solid #ccc;
+    text-align: center;
+    padding: 0.45rem 0.35rem;
+}
+
+.schedule-grid th {
+    color: white;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.col-aula,
+.col-horario {
+    background: linear-gradient(180deg, #f59e0b, #fbbf24);
+    color: #1e293b !important;
+    min-width: 70px;
+}
+
+.col-salas {
+    background: #fecaca;
+    color: #7f1d1d !important;
+}
+
+.col-especiais {
+    background: #991b1b;
+    color: white !important;
+}
+
+.schedule-cell {
+    min-width: 90px;
+    height: 48px;
+    vertical-align: middle;
+    background: white;
+}
+
+.schedule-cell.cell-booked {
+    background: #f8fafc;
+}
+
+.schedule-cell.cell-clickable {
+    cursor: pointer;
+}
+
+.schedule-cell.cell-clickable:hover {
+    background: #eff6ff;
+}
+
+.booking-pill {
+    display: inline-block;
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-table-section {
+    margin-top: 2rem;
+}
+
+.admin-table-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-badge {
+    font-size: 0.7rem;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-overlay[hidden] {
+    display: none;
+}
+
+.modal-box {
+    background: white;
+    border-radius: 12px;
+    padding: 1.75rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-box h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.15rem;
+}
+
+.modal-box p {
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.modal-error {
+    color: var(--danger);
+    margin-top: 1rem;
+    font-size: 0.9rem;
 }

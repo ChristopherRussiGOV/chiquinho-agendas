@@ -9,9 +9,14 @@
 <body>
     {% if current_user.is_authenticated %}
     <nav class="navbar">
-        <div class="nav-brand">Agendamento de Salas</div>
+        <a href="{{ url_for(home_endpoint) }}" class="nav-brand">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="nav-logo">
+            <span>Chiquinho Agendamentos - Leste-3</span>
+        </a>
         <div class="nav-links">
+            {% if not current_user.is_professor %}
             <a href="{{ url_for('dashboard') }}">Início</a>
+            {% endif %}
             {% if current_user.can_book() %}
             <a href="{{ url_for('agendar') }}">Agendar</a>
             {% endif %}

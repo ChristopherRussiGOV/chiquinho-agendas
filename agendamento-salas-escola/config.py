@@ -37,6 +37,16 @@ DEFAULT_TIME_LIST_2 = [
     "13:00", "13:50", "14:40", "15:30", "16:20", "17:10", "18:00", "18:50", "19:40"
 ]
 
-ROOMS = ["01", "02", "03", "04"]
+ROOMS = ["01", "02", "03", "04", "AUD", "INFO", "BIB"]
+
+GRID_ROOMS = [
+    {"id": "01", "label": "SALA 01", "style": "salas"},
+    {"id": "02", "label": "SALA 02", "style": "salas"},
+    {"id": "03", "label": "SALA 03", "style": "salas"},
+    {"id": "04", "label": "SALA 04", "style": "salas"},
+    {"id": "AUD", "label": "AUDITÓRIO", "style": "especiais"},
+    {"id": "INFO", "label": "INFORMÁTICA", "style": "especiais"},
+    {"id": "BIB", "label": "BIBLIOTECA", "style": "especiais"},
+]
 ROLES = ["admin", "moderador", "professor", "visualizador"]
 BOOKING_STATUSES = ["pendente", "agendado", "reagendado", "presente"]

@@ -1,0 +1,174 @@
+<div class="schedule-panel">
+    <div class="schedule-header">
+        <h1 class="schedule-title">AGENDAMENTO DE SALA</h1>
+        <p class="schedule-welcome">Bem-vindo(a), {{ current_user.username }}!</p>
+
+        <form method="GET" class="date-nav-form" id="date-nav-form">
+            <div class="date-nav">
+                <a href="{{ url_for(form_action, date=prev_date) }}" class="date-arrow" title="Dia anterior">&#9664;</a>
+                <input type="date" name="date" value="{{ filter_date }}" class="date-input">
+                <span class="date-display">{{ date_label }}</span>
+                <a href="{{ url_for(form_action, date=next_date) }}" class="date-arrow" title="Próximo dia">&#9654;</a>
+                <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            </div>
+        </form>
+
+        {% if current_user.can_book() %}
+        <p class="schedule-hint">Clique nas células brancas para agendar.</p>
+        {% endif %}
+    </div>
+
+    <div class="schedule-grid-wrapper">
+        <table class="schedule-grid">
+            <thead>
+                <tr>
+                    <th class="col-aula">AULA</th>
+                    <th class="col-horario">HORÁRIO</th>
+                    {% for room in GRID_ROOMS %}
+                    <th class="col-room col-{{ room.style }}">{{ room.label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in schedule_rows %}
+                <tr>
+                    <td class="col-aula">{{ row.aula }}</td>
+                    <td class="col-horario">{{ row.label }}</td>
+                    {% for room in GRID_ROOMS %}
+                    {% set cell_key = (room.id, row.start_time, row.end_time) %}
+                    {% set booking = schedule_grid.get(cell_key) %}
+                    <td class="col-room col-{{ room.style }} schedule-cell
+                        {% if booking %}cell-booked{% else %}cell-empty{% endif %}
+                        {% if current_user.can_book() and (not booking or booking.teacher_id == current_user.id) %}cell-clickable{% endif %}"
+                        {% if current_user.can_book() %}
+                        {% if booking and booking.teacher_id == current_user.id %}
+                        data-action="cancel"
+                        data-booking-id="{{ booking.id }}"
+                        data-room-label="{{ room.label }}"
+                        data-time="{{ row.label }}"
+                        data-teacher="{{ booking.teacher.username }}"
+                        {% elif not booking %}
+                        data-action="book"
+                        data-room="{{ room.id }}"
+                        data-room-label="{{ room.label }}"
+                        data-start="{{ row.start_time }}"
+                        data-end="{{ row.end_time }}"
+                        data-time="{{ row.label }}"
+                        data-date="{{ filter_date }}"
+                        {% endif %}
+                        {% endif %}>
+                        {% if booking %}
+                        <span class="booking-pill">{{ booking.teacher.username | upper }}</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="schedule-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+        <h3 id="modal-title"></h3>
+        <p id="modal-message"></p>
+        <div class="modal-actions">
+            <button type="button" id="modal-confirm" class="btn btn-primary">Confirmar</button>
+            <button type="button" id="modal-cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+        <p id="modal-error" class="modal-error" hidden></p>
+    </div>
+</div>
+
+<script>
+(function () {
+    const modal = document.getElementById("schedule-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMessage = document.getElementById("modal-message");
+    const modalConfirm = document.getElementById("modal-confirm");
+    const modalCancel = document.getElementById("modal-cancel");
+    const modalError = document.getElementById("modal-error");
+    let pendingAction = null;
+
+    function openModal(title, message, action) {
+        pendingAction = action;
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+        modalError.hidden = true;
+        modalError.textContent = "";
+        modal.hidden = false;
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        pendingAction = null;
+    }
+
+    document.querySelectorAll(".schedule-cell.cell-clickable").forEach(function (cell) {
+        cell.addEventListener("click", function () {
+            const action = cell.dataset.action;
+            if (action === "book") {
+                openModal(
+                    "Confirmar agendamento",
+                    "Deseja agendar " + cell.dataset.roomLabel + " no horário " + cell.dataset.time + "?",
+                    { type: "book", cell: cell }
+                );
+            } else if (action === "cancel") {
+                openModal(
+                    "Confirmar cancelamento",
+                    "Deseja desagendar " + cell.dataset.roomLabel + " (" + cell.dataset.time + ")?",
+                    { type: "cancel", cell: cell }
+                );
+            }
+        });
+    });
+
+    modalCancel.addEventListener("click", closeModal);
+    modal.addEventListener("click", function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    modalConfirm.addEventListener("click", async function () {
+        if (!pendingAction) return;
+
+        const cell = pendingAction.cell;
+        const formData = new FormData();
+
+        if (pendingAction.type === "book") {
+            formData.append("room", cell.dataset.room);
+            formData.append("booking_date", cell.dataset.date);
+            formData.append("start_time", cell.dataset.start);
+            formData.append("end_time", cell.dataset.end);
+
+            const response = await fetch("{{ url_for('agendar_rapido') }}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                modalError.textContent = data.message;
+                modalError.hidden = false;
+            }
+        } else if (pendingAction.type === "cancel") {
+            const response = await fetch(
+                "/agendamentos/" + cell.dataset.bookingId + "/cancelar",
+                {
+                    method: "POST",
+                    headers: { "X-Requested-With": "XMLHttpRequest" },
+                }
+            );
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload();
+            } else {
+                modalError.textContent = data.message;
+                modalError.hidden = false;
+            }
+        }
+    });
+})();
+</script>
