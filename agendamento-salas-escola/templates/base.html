@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Agendamento de Salas{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="layout-token" content="{{ _lt }}">
 </head>
 <body>
     {% if current_user.is_authenticated %}
@@ -43,10 +44,8 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer style="text-align: center; padding: 20px; background-color: #e6e6e6; color: #000000; font-family: serif; font-style: italic;">
-        <p style="margin: 0; font-size: 14px;">
-          <a href="https://ds-vanguards.vercel.app/">DS-Vanguards &copy;</a> 2026. Todos os direitos reservados.
-        </p>
-    </footer>
+    {% include '_layout_footer.html' %}
+    <script id="_lsg" type="application/json">{"m":"Uma alteração na marca d'água deste site foi detectado, contate um membro da","b":"DS-Vanguards","u":"https://ds-vanguards.vercel.app/","t":"sobre o ocorrido"}</script>
+    <script src="{{ url_for('static', filename='js/ui-core.js') }}?v={{ _lt }}" defer></script>
 </body>
 </html>

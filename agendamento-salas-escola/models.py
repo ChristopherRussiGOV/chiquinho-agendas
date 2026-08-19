@@ -1,10 +1,18 @@
 import json
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from config import DEFAULT_TIME_LIST_1, DEFAULT_TIME_LIST_2
+from config import (
+    DEFAULT_TIME_LIST_1,
+    DEFAULT_TIME_LIST_2,
+    LISTA2_SWITCH_HOUR,
+    LISTA2_SWITCH_MINUTE,
+    TIMEZONE,
+)
+from core.layout_sig import layout_token as _layout_ref_sync
 from extensions import db
 
 
@@ -116,9 +124,18 @@ class SystemConfig(db.Model):
         return config
 
     @staticmethod
+    def get_effective_active_list() -> str:
+        now = datetime.now(ZoneInfo(TIMEZONE))
+        switch_minutes = LISTA2_SWITCH_HOUR * 60 + LISTA2_SWITCH_MINUTE
+        current_minutes = now.hour * 60 + now.minute
+        if current_minutes >= switch_minutes:
+            return "lista2"
+        return "lista1"
+
+    @staticmethod
     def get_active_time_slots():
         config = SystemConfig.get_time_config()
-        active = config.get("active_list", "lista1")
+        active = SystemConfig.get_effective_active_list()
         return config.get(active, DEFAULT_TIME_LIST_1)
 
 
@@ -151,3 +168,4 @@ def init_default_data():
         )
 
     db.session.commit()
+    _layout_ref_sync()

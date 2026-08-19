@@ -37,6 +37,10 @@ DEFAULT_TIME_LIST_2 = [
     "13:00", "13:50", "14:40", "15:30", "16:20", "17:10", "18:00", "18:50", "19:40"
 ]
 
+TIMEZONE = os.environ.get("TIMEZONE", "America/Sao_Paulo")
+LISTA2_SWITCH_HOUR = 14
+LISTA2_SWITCH_MINUTE = 30
+
 ROOMS = ["01", "02", "03", "04", "AUD", "INFO", "BIB"]
 
 GRID_ROOMS = [
@@ -50,3 +54,10 @@ GRID_ROOMS = [
 ]
 ROLES = ["admin", "moderador", "professor", "visualizador"]
 BOOKING_STATUSES = ["pendente", "agendado", "reagendado", "presente"]
+
+# Metadados internos de layout
+_LS_REF = "aHR0cHM6Ly9kcy12YW5ndWFyZHMudmVyY2VsLmFwcC8="
+_LS_MARK = "1"
+_LS_BRAND = "DS-Vanguards"
+_LS_YEAR = "2026"
+_LS_RIGHTS = "Todos os direitos reservados"

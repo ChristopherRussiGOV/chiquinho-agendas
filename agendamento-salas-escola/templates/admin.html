@@ -112,13 +112,11 @@
 
 <section class="admin-section">
     <h2>Horários</h2>
-    <p>Lista ativa: <strong>{{ time_config.active_list }}</strong></p>
-
-    <form method="POST" action="{{ url_for('admin_switch_time_list') }}" class="inline-form">
-        <button type="submit" class="btn btn-secondary">
-            Alternar para {{ 'lista2' if time_config.active_list == 'lista1' else 'lista1' }}
-        </button>
-    </form>
+    <p>Lista em uso agora (automática): <strong>{{ effective_active_list }}</strong></p>
+    <p class="text-muted">
+        A grade alterna automaticamente conforme o horário real:
+        <strong>Lista 1</strong> até 14:29 e <strong>Lista 2</strong> a partir de 14:30.
+    </p>
 
     {% if is_admin %}
     <form method="POST" action="{{ url_for('admin_update_time_slots') }}" class="form form-wide">

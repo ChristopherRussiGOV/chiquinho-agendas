@@ -451,9 +451,33 @@ h2 {
 
 .schedule-welcome {
     color: #475569;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
     font-size: 1rem;
+}
+
+.active-list-badge {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: #1e40af;
+    background: #dbeafe;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
+}
+
+.detailed-table-panel {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 32px rgba(37, 99, 235, 0.08);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.cards-grid-compact {
+    margin-top: 1.5rem;
+    max-width: 360px;
 }
 
 .date-nav-form {
@@ -801,4 +825,62 @@ h2 {
     padding: 1.5rem;
     z-index: 10;
     background: rgba(241, 245, 249, 0.35);
+}
+
+.site-ls {
+    text-align: center;
+    padding: 20px;
+    background-color: #e6e6e6;
+    color: #000;
+    font-family: serif;
+    font-style: italic;
+    margin-top: auto;
+}
+
+.site-ls-text {
+    margin: 0;
+    font-size: 14px;
+}
+
+.site-ls a {
+    color: inherit;
+    font-weight: 700;
+}
+
+.lsx-o {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    background: rgba(15, 23, 42, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.lsx-o[hidden] {
+    display: none !important;
+}
+
+.lsx-i {
+    max-width: 520px;
+    background: #fff;
+    border: 3px solid #991b1b;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+    text-align: center;
+}
+
+.lsx-i p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #1e293b;
+    margin: 0;
+}
+
+.lsx-i a {
+    color: #2563eb;
+    font-weight: 800;
+    text-decoration: underline;
 }

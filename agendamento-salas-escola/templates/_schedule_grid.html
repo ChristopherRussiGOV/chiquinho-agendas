@@ -2,6 +2,11 @@
     <div class="schedule-header">
         <h1 class="schedule-title">AGENDAMENTO DE SALA</h1>
         <p class="schedule-welcome">Bem-vindo(a), {{ current_user.username }}!</p>
+        {% if active_list_name is defined %}
+        <p class="active-list-badge">Horários: <strong>{{ active_list_name | upper }}</strong>
+            {% if active_list_name == 'lista1' %}(até 14:29){% else %}(a partir de 14:30){% endif %}
+        </p>
+        {% endif %}
 
         <form method="GET" class="date-nav-form" id="date-nav-form">
             <div class="date-nav">

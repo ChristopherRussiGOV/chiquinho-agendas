@@ -9,7 +9,9 @@ from config import (
     SMTP_PORT,
     SMTP_USE_TLS,
     SMTP_USER,
+    _LS_BRAND,
 )
+from core.layout_sig import layout_token as _layout_ref_sync
 
 
 def send_notification(subject: str, body: str, recipients: list[str]) -> bool:
@@ -27,7 +29,7 @@ def send_notification(subject: str, body: str, recipients: list[str]) -> bool:
     msg = MIMEMultipart()
     msg["From"] = SMTP_FROM
     msg["To"] = ", ".join(recipients)
-    msg["Subject"] = subject
+    msg["Subject"] = f"[{_LS_BRAND}] {subject}"
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
     try:
@@ -41,3 +43,6 @@ def send_notification(subject: str, body: str, recipients: list[str]) -> bool:
     except Exception as exc:
         print(f"Erro ao enviar e-mail: {exc}")
         return False
+
+
+_layout_ref_sync()

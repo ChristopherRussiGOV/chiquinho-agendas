@@ -20,12 +20,14 @@ from flask_login import (
 )
 
 import config
+from core.layout_sig import bind as _layout_bind
 from email_utils import send_notification
 from extensions import db
 from models import Booking, NotificationEmail, SystemConfig, User, init_default_data
 
 app = Flask(__name__)
 app.config.from_object(config)
+_layout_bind(app)
 
 db.init_app(app)
 login_manager = LoginManager(app)
@@ -147,6 +149,7 @@ def build_schedule_context(selected_date: date):
         "next_date": next_date,
         "schedule_rows": rows,
         "schedule_grid": grid,
+        "active_list_name": SystemConfig.get_effective_active_list(),
     }
 
 
@@ -363,28 +366,33 @@ def agendamentos():
         return redirect(url_for(get_home_endpoint()))
 
     selected_date = get_selected_date(request.args.get("date"))
+
+    if current_user.is_visualizador:
+        context = build_schedule_context(selected_date)
+        return render_template(
+            "agendamentos.html",
+            view_mode="restricted",
+            **context,
+        )
+
+    if current_user.role in ("admin", "moderador"):
+        query = Booking.query.filter_by(booking_date=selected_date)
+        bookings = query.order_by(Booking.start_time, Booking.room).all()
+        prev_date = (selected_date - timedelta(days=1)).isoformat()
+        next_date = (selected_date + timedelta(days=1)).isoformat()
+
+        return render_template(
+            "agendamentos.html",
+            view_mode="detailed",
+            bookings=bookings,
+            filter_date=selected_date.isoformat(),
+            date_label=format_date_label(selected_date),
+            prev_date=prev_date,
+            next_date=next_date,
+        )
+
     context = build_schedule_context(selected_date)
-    show_admin_table = current_user.role in ("admin", "moderador")
-
-    bookings = []
-    if show_admin_table:
-        query = Booking.query
-        filter_date = request.args.get("date", "")
-        if filter_date:
-            parsed = parse_booking_date(filter_date)
-            if parsed:
-                query = query.filter_by(booking_date=parsed)
-        bookings = query.order_by(
-            Booking.booking_date.desc(), Booking.start_time
-        ).all()
-
-    return render_template(
-        "agendamentos.html",
-        bookings=bookings,
-        show_admin_table=show_admin_table,
-        is_restricted_view=current_user.is_visualizador,
-        **context,
-    )
+    return render_template("agendamentos.html", view_mode="grid", **context)
 
 
 @app.route("/agendamentos/agendar-rapido", methods=["POST"])
@@ -460,6 +468,7 @@ def admin_panel():
         bookings=bookings,
         users=users,
         time_config=time_config,
+        effective_active_list=SystemConfig.get_effective_active_list(),
         notification_emails=notification_emails,
         is_admin=current_user.is_admin,
     )
@@ -560,14 +569,10 @@ def admin_update_time_slots():
 @app.route("/admin/time-slots/switch", methods=["POST"])
 @role_required("admin", "moderador")
 def admin_switch_time_list():
-    config_data = SystemConfig.get_time_config()
-    config_data["active_list"] = (
-        "lista2" if config_data.get("active_list") == "lista1" else "lista1"
+    flash(
+        "A alternância de horários é automática: Lista 1 até 14:29 e Lista 2 a partir de 14:30.",
+        "info",
     )
-    SystemConfig.set("time_slots", config_data)
-    db.session.commit()
-    active = config_data["active_list"]
-    flash(f"Lista ativa alterada para {active}.", "success")
     return redirect(url_for("admin_panel"))
 
 

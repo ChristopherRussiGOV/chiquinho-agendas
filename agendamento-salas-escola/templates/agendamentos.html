@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Agendamentos{% endblock %}
 {% block content %}
-{% if is_restricted_view %}
+{% if view_mode == 'restricted' %}
 <div class="schedule-restricted">
     <div class="schedule-restricted-blur" aria-hidden="true">
         {% set form_action = 'agendamentos' %}
@@ -11,46 +11,10 @@
         {% include '_acesso_negado.html' %}
     </div>
 </div>
+{% elif view_mode == 'detailed' %}
+{% include '_detailed_table.html' %}
 {% else %}
 {% set form_action = 'agendamentos' %}
 {% include '_schedule_grid.html' %}
-
-{% if show_admin_table %}
-<div class="admin-table-section">
-    <h2>Tabela Detalhada <span class="admin-badge">Admin / Moderador</span></h2>
-    <p class="text-muted">Visão em lista com status e ações administrativas.</p>
-
-    {% if bookings %}
-    <div class="table-wrapper">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Sala</th>
-                    <th>Data</th>
-                    <th>Início</th>
-                    <th>Fim</th>
-                    <th>Professor</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for b in bookings %}
-                <tr>
-                    <td>{{ ROOM_LABELS.get(b.room, b.room) }}</td>
-                    <td>{{ b.booking_date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ b.start_time }}</td>
-                    <td>{{ b.end_time }}</td>
-                    <td>{{ b.teacher.username }}</td>
-                    <td><span class="badge badge-status badge-{{ b.status }}">{{ b.status }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <p class="empty-state">Nenhum agendamento encontrado para esta data.</p>
-    {% endif %}
-</div>
-{% endif %}
 {% endif %}
 {% endblock %}
