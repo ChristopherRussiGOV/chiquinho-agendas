@@ -339,8 +339,11 @@ def dashboard():
     if current_user.is_professor:
         return redirect(url_for("agendamentos"))
 
+    if current_user.is_visualizador:
+        return render_template("dashboard.html", acesso_negado=True)
+
     context = {}
-    if current_user.can_view_bookings():
+    if current_user.role in ("admin", "moderador"):
         selected_date = get_selected_date(request.args.get("date"))
         context = build_schedule_context(selected_date)
     return render_template("dashboard.html", **context)
@@ -379,6 +382,7 @@ def agendamentos():
         "agendamentos.html",
         bookings=bookings,
         show_admin_table=show_admin_table,
+        is_restricted_view=current_user.is_visualizador,
         **context,
     )
 

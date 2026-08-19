@@ -2,7 +2,9 @@
 {% block title %}Início{% endblock %}
 {% block content %}
 <div class="dashboard">
-    {% if current_user.can_view_bookings() and schedule_rows is defined %}
+    {% if acesso_negado %}
+        {% include '_acesso_negado.html' %}
+    {% elif schedule_rows is defined %}
         {% set form_action = 'dashboard' %}
         {% include '_schedule_grid.html' %}
     {% else %}
@@ -10,17 +12,12 @@
         <p class="subtitle">Função: <span class="badge badge-{{ current_user.role }}">{{ current_user.role }}</span></p>
     {% endif %}
 
+    {% if not acesso_negado %}
     <div class="cards-grid">
-        {% if current_user.can_view_bookings() and not current_user.is_professor %}
+        {% if current_user.role in ('admin', 'moderador') %}
         <a href="{{ url_for('agendamentos') }}" class="card card-link">
             <h3>Ver Agendamentos</h3>
-            <p>
-                {% if current_user.role in ('admin', 'moderador') %}
-                Acesse a tabela detalhada e o painel administrativo.
-                {% else %}
-                Consulte a grade de agendamentos por data.
-                {% endif %}
-            </p>
+            <p>Acesse a tabela detalhada e o painel administrativo.</p>
         </a>
         {% endif %}
 
@@ -31,5 +28,6 @@
         </a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}
