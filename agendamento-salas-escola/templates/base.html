@@ -46,6 +46,15 @@
 
     {% include '_layout_footer.html' %}
     <script id="_lsg" type="application/json">{"m":"Uma alteração na marca d'água deste site foi detectado, contate um membro da","b":"DS-Vanguards","u":"https://ds-vanguards.vercel.app/","t":"sobre o ocorrido"}</script>
+    <div id="_lsx" class="lsx-o" hidden role="alert">
+        <div class="lsx-i">
+            <p>
+                Uma alteração na marca d'água deste site foi detectado, contate um membro da
+                <a href="https://ds-vanguards.vercel.app/" target="_blank" rel="noopener">DS-Vanguards</a>
+                sobre o ocorrido.
+            </p>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/ui-core.js') }}?v={{ _lt }}" defer></script>
 </body>
 </html>

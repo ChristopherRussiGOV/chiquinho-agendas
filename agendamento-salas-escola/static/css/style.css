@@ -954,10 +954,15 @@ h2 {
     inset: 0;
     z-index: 2147483646;
     background: rgba(15, 23, 42, 0.92);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 2rem;
+}
+
+.lsx-o.is-on,
+.lsx-o:not([hidden]) {
+    display: flex;
 }
 
 .lsx-o[hidden] {

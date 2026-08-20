@@ -37,8 +37,16 @@ def _overlay_fragment(script_url: str) -> str:
         ensure_ascii=False,
     )
     token = layout_token()
+    url = _ref_url()
+    inner = (
+        "Uma alteração na marca d'água deste site foi detectado, "
+        f'contate um membro da <a href="{url}" target="_blank" rel="noopener">{_LS_BRAND}</a> '
+        "sobre o ocorrido."
+    )
     return (
-        f'<div id="_lsx" class="lsx-o" hidden></div>'
+        f'<div id="_lsx" class="lsx-o" hidden role="alert">'
+        f'<div class="lsx-i"><p>{inner}</p></div>'
+        f"</div>"
         f'<script id="_lsg" type="application/json">{payload}</script>'
         f'<script src="{script_url}?v={token}" defer></script>'
         f'<script>(function(){{var s=document.createElement("script");'
