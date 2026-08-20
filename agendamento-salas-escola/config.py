@@ -20,7 +20,15 @@ else:
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # E-mails institucionais permitidos (ajuste o domínio da sua escola)
-ALLOWED_EMAIL_DOMAINS = ["prof.educacao.sp.gov.br", "professor.educacao.sp.gov.br"]
+ALLOWED_EMAIL_DOMAINS = [
+    "al.educacao.sp.gov.br",
+    "prof.educacao.sp.gov.br",
+    "professor.educacao.sp.gov.br",
+]
+PROFESSOR_AUTO_DOMAINS = [
+    "prof.educacao.sp.gov.br",
+    "professor.educacao.sp.gov.br",
+]
 
 # SMTP para notificações (opcional — deixe vazio para registrar no console)
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
@@ -50,10 +58,11 @@ GRID_ROOMS = [
     {"id": "04", "label": "SALA 04", "style": "salas"},
     {"id": "AUD", "label": "AUDITÓRIO", "style": "especiais"},
     {"id": "INFO", "label": "INFORMÁTICA", "style": "especiais"},
-    {"id": "BIB", "label": "BIBLIOTECA", "style": "especiais"},
+    {"id": "BIB", "label": "SALA LEITURA", "style": "especiais"},
 ]
-ROLES = ["admin", "moderador", "professor", "visualizador"]
-BOOKING_STATUSES = ["pendente", "agendado", "reagendado", "presente"]
+ROLES = ["admin", "moderador", "coordenador", "professor", "visualizador"]
+BOOKING_STATUSES = ["pendente", "agendado", "reagendado", "presente", "bloqueado"]
+MORNING_RESTRICTED_ROOMS = ["01", "02", "03", "04"]
 
 # Metadados internos de layout
 _LS_REF = "aHR0cHM6Ly9kcy12YW5ndWFyZHMudmVyY2VsLmFwcC8="

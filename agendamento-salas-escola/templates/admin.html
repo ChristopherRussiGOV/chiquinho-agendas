@@ -30,7 +30,7 @@
             <tbody>
                 {% for b in bookings %}
                 <tr>
-                    <td>Sala {{ b.room }}</td>
+                    <td>{{ ROOM_LABELS.get(b.room, b.room) }}</td>
                     <td>{{ b.booking_date.strftime('%d/%m/%Y') }}</td>
                     <td>{{ b.start_time }} — {{ b.end_time }}</td>
                     <td>{{ b.teacher.username }}</td>
@@ -63,6 +63,22 @@
 
 <section class="admin-section">
     <h2>Usuários</h2>
+    {% if is_admin %}
+    <div class="auto-role-box">
+        <p>
+            Cadastros com e-mail
+            <strong>@prof.educacao.sp.gov.br</strong> ou
+            <strong>@professor.educacao.sp.gov.br</strong>
+            recebem automaticamente o cargo <strong>professor</strong>.
+        </p>
+        <form method="POST" action="{{ url_for('admin_toggle_auto_professor') }}" class="inline-form">
+            <button type="submit" class="btn {% if auto_professor_enabled %}btn-warning{% else %}btn-success{% endif %}">
+                {% if auto_professor_enabled %}Desligar atribuição automática{% else %}Ligar atribuição automática{% endif %}
+            </button>
+        </form>
+        <p class="text-muted">Status atual: <strong>{% if auto_professor_enabled %}ligada{% else %}desligada{% endif %}</strong></p>
+    </div>
+    {% endif %}
     <div class="table-wrapper">
         <table class="data-table">
             <thead>

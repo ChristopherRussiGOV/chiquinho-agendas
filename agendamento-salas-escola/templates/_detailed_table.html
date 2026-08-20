@@ -6,10 +6,9 @@
         <form method="GET" class="date-nav-form">
             <div class="date-nav">
                 <a href="{{ url_for('agendamentos', date=prev_date) }}" class="date-arrow" title="Dia anterior">&#9664;</a>
-                <input type="date" name="date" value="{{ filter_date }}" class="date-input">
+                <input type="date" name="date" value="{{ filter_date }}" class="date-input" onchange="this.form.submit()">
                 <span class="date-display">{{ date_label }}</span>
                 <a href="{{ url_for('agendamentos', date=next_date) }}" class="date-arrow" title="Próximo dia">&#9654;</a>
-                <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
             </div>
         </form>
     </div>
@@ -34,7 +33,13 @@
                     <td><strong>{{ b.booking_date.strftime('%d/%m/%Y') }}</strong></td>
                     <td><strong>{{ b.start_time }}</strong></td>
                     <td><strong>{{ b.end_time }}</strong></td>
-                    <td><strong>{{ b.teacher.username }}</strong></td>
+                    <td>
+                        {% if b.status == 'bloqueado' %}
+                        <strong>BLOQUEADO</strong>
+                        {% else %}
+                        <strong>{{ b.teacher.username }}</strong>
+                        {% endif %}
+                    </td>
                     <td><span class="badge badge-status badge-{{ b.status }}">{{ b.status }}</span></td>
                 </tr>
                 {% endfor %}

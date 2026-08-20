@@ -1,4 +1,5 @@
 import os
+import threading
 from datetime import date, datetime, timedelta
 from functools import wraps
 
@@ -81,6 +82,43 @@ def get_home_endpoint(user=None) -> str:
     return "dashboard"
 
 
+def email_domain(email: str) -> str:
+    if "@" not in email:
+        return ""
+    return email.split("@", 1)[1]
+
+
+def should_auto_assign_professor(email: str) -> bool:
+    if not SystemConfig.is_auto_professor_enabled():
+        return False
+    domain = email_domain(email)
+    return any(
+        domain == d or domain.endswith("." + d)
+        for d in config.PROFESSOR_AUTO_DOMAINS
+    )
+
+
+def is_morning_room_restricted(room: str) -> bool:
+    return (
+        SystemConfig.get_effective_active_list() == "lista1"
+        and room in config.MORNING_RESTRICTED_ROOMS
+    )
+
+
+def notify_booking_async(subject: str, body: str) -> None:
+    recipients = [e.email for e in NotificationEmail.query.all()]
+    if not recipients:
+        return
+
+    def _send():
+        try:
+            send_notification(subject, body, recipients)
+        except Exception:
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 @app.context_processor
 def inject_globals():
     home = "login"
@@ -93,6 +131,7 @@ def inject_globals():
         "GRID_ROOMS": config.GRID_ROOMS,
         "ROOM_LABELS": {room["id"]: room["label"] for room in config.GRID_ROOMS},
         "STATUSES": config.BOOKING_STATUSES,
+        "MORNING_RESTRICTED_ROOMS": config.MORNING_RESTRICTED_ROOMS,
     }
 
 
@@ -153,39 +192,40 @@ def build_schedule_context(selected_date: date):
     }
 
 
-def create_booking(room, booking_date, start_time, end_time, teacher_id):
+def create_booking(room, booking_date, start_time, end_time, teacher_id, status="agendado"):
     time_slots = SystemConfig.get_active_time_slots()
 
     if room not in config.ROOMS:
-        return False, "Sala inválida."
+        return False, "Sala inválida.", None
     if not booking_date:
-        return False, "Data inválida."
+        return False, "Data inválida.", None
     if booking_date < date.today():
-        return False, "Não é possível agendar em datas passadas."
+        return False, "Não é possível agendar em datas passadas.", None
     if start_time not in time_slots or end_time not in time_slots:
-        return False, "Horário inválido."
+        return False, "Horário inválido.", None
     if start_time >= end_time:
-        return False, "O horário final deve ser posterior ao inicial."
+        return False, "O horário final deve ser posterior ao inicial.", None
+    if status != "bloqueado" and is_morning_room_restricted(room):
+        return False, "No turno da manhã, as salas 01 a 04 não podem ser agendadas.", None
 
     conflict = Booking.query.filter_by(room=room, booking_date=booking_date).all()
     if any(
         times_overlap(start_time, end_time, b.start_time, b.end_time) for b in conflict
     ):
-        return False, "Já existe um agendamento neste horário para esta sala."
+        return False, "Já existe um agendamento neste horário para esta sala.", None
 
     booking = Booking(
         room=room,
         booking_date=booking_date,
         start_time=start_time,
         end_time=end_time,
-        status="agendado",
+        status=status,
         teacher_id=teacher_id,
     )
     db.session.add(booking)
     db.session.commit()
 
-    recipients = [e.email for e in NotificationEmail.query.all()]
-    if recipients:
+    if status != "bloqueado":
         teacher = db.session.get(User, teacher_id)
         body = (
             f"Novo agendamento registrado:\n\n"
@@ -193,11 +233,16 @@ def create_booking(room, booking_date, start_time, end_time, teacher_id):
             f"Sala: {room}\n"
             f"Data: {booking_date.strftime('%d/%m/%Y')}\n"
             f"Horário: {start_time} às {end_time}\n"
-            f"Status: agendado"
+            f"Status: {status}"
         )
-        send_notification("Novo agendamento de sala", body, recipients)
+        notify_booking_async("Novo agendamento de sala", body)
 
-    return True, "Agendamento realizado com sucesso!"
+    message = (
+        "Horário bloqueado."
+        if status == "bloqueado"
+        else "Agendamento realizado com sucesso!"
+    )
+    return True, message, booking
 
 
 @app.route("/")
@@ -267,11 +312,15 @@ def register():
         elif User.query.filter_by(email=email).first():
             flash("Este e-mail já está cadastrado.", "error")
         else:
-            user = User(username=username, email=email, role="visualizador")
+            role = "professor" if should_auto_assign_professor(email) else "visualizador"
+            user = User(username=username, email=email, role=role)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            flash("Cadastro realizado! Faça login para continuar.", "success")
+            if role == "professor":
+                flash("Cadastro realizado como professor! Faça login para continuar.", "success")
+            else:
+                flash("Cadastro realizado! Faça login para continuar.", "success")
             return redirect(url_for("login"))
 
     return render_template("register.html")
@@ -346,7 +395,7 @@ def dashboard():
         return render_template("dashboard.html", acesso_negado=True)
 
     context = {}
-    if current_user.role in ("admin", "moderador"):
+    if current_user.role in ("admin", "moderador", "coordenador"):
         selected_date = get_selected_date(request.args.get("date"))
         context = build_schedule_context(selected_date)
     return render_template("dashboard.html", **context)
@@ -374,6 +423,10 @@ def agendamentos():
             view_mode="restricted",
             **context,
         )
+
+    if current_user.is_coordenador:
+        context = build_schedule_context(selected_date)
+        return render_template("agendamentos.html", view_mode="grid", **context)
 
     if current_user.role in ("admin", "moderador"):
         query = Booking.query.filter_by(booking_date=selected_date)
@@ -403,11 +456,20 @@ def agendar_rapido():
     start_time = request.form.get("start_time", "")
     end_time = request.form.get("end_time", "")
 
-    success, message = create_booking(
+    success, message, booking = create_booking(
         room, booking_date, start_time, end_time, current_user.id
     )
     status_code = 200 if success else 400
-    return jsonify({"success": success, "message": message}), status_code
+    payload = {"success": success, "message": message}
+    if success and booking:
+        payload.update(
+            {
+                "booking_id": booking.id,
+                "username": current_user.username,
+                "status": booking.status,
+            }
+        )
+    return jsonify(payload), status_code
 
 
 @app.route("/agendamentos/<int:booking_id>/cancelar", methods=["POST"])
@@ -422,17 +484,52 @@ def cancelar_agendamento(booking_id):
             {"success": False, "message": "Somente o autor pode cancelar o agendamento."}
         ), 403
 
-    if booking.status == "presente":
+    if booking.status in ("presente", "bloqueado"):
         return jsonify(
             {
                 "success": False,
-                "message": "Não é possível cancelar após marcar presença.",
+                "message": "Não é possível cancelar este horário.",
             }
         ), 400
 
     db.session.delete(booking)
     db.session.commit()
     return jsonify({"success": True, "message": "Agendamento cancelado com sucesso!"})
+
+
+@app.route("/agendamentos/bloquear", methods=["POST"])
+@role_required("coordenador")
+def bloquear_horario():
+    room = request.form.get("room", "")
+    booking_date = parse_booking_date(request.form.get("booking_date", ""))
+    start_time = request.form.get("start_time", "")
+    end_time = request.form.get("end_time", "")
+
+    success, message, booking = create_booking(
+        room,
+        booking_date,
+        start_time,
+        end_time,
+        current_user.id,
+        status="bloqueado",
+    )
+    status_code = 200 if success else 400
+    payload = {"success": success, "message": message}
+    if success and booking:
+        payload.update({"booking_id": booking.id, "status": "bloqueado"})
+    return jsonify(payload), status_code
+
+
+@app.route("/agendamentos/<int:booking_id>/desbloquear", methods=["POST"])
+@role_required("coordenador")
+def desbloquear_horario(booking_id):
+    booking = db.session.get(Booking, booking_id)
+    if not booking or booking.status != "bloqueado":
+        return jsonify({"success": False, "message": "Bloqueio não encontrado."}), 404
+
+    db.session.delete(booking)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Horário desbloqueado."})
 
 
 @app.route("/agendamentos/<int:booking_id>/presente", methods=["POST"])
@@ -471,6 +568,7 @@ def admin_panel():
         effective_active_list=SystemConfig.get_effective_active_list(),
         notification_emails=notification_emails,
         is_admin=current_user.is_admin,
+        auto_professor_enabled=SystemConfig.is_auto_professor_enabled(),
     )
 
 
@@ -538,6 +636,20 @@ def admin_reset_password(user_id):
             f"Senha de {user.username} removida. O usuário deverá definir uma nova senha no próximo login.",
             "success",
         )
+    return redirect(url_for("admin_panel"))
+
+
+@app.route("/admin/settings/auto-professor", methods=["POST"])
+@role_required("admin")
+def admin_toggle_auto_professor():
+    enabled = not SystemConfig.is_auto_professor_enabled()
+    SystemConfig.set_auto_professor_enabled(enabled)
+    db.session.commit()
+    flash(
+        "Atribuição automática de professor "
+        + ("ligada." if enabled else "desligada."),
+        "success",
+    )
     return redirect(url_for("admin_panel"))
 
 

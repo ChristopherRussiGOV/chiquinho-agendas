@@ -51,6 +51,10 @@ class User(UserMixin, db.Model):
         return self.role == "professor"
 
     @property
+    def is_coordenador(self) -> bool:
+        return self.role == "coordenador"
+
+    @property
     def is_visualizador(self) -> bool:
         return self.role == "visualizador"
 
@@ -60,15 +64,24 @@ class User(UserMixin, db.Model):
     def can_book(self) -> bool:
         return self.role == "professor"
 
+    def can_block_slots(self) -> bool:
+        return self.role == "coordenador"
+
     def can_view_bookings(self) -> bool:
-        return self.role in ("professor", "visualizador", "admin", "moderador")
+        return self.role in (
+            "professor",
+            "visualizador",
+            "admin",
+            "moderador",
+            "coordenador",
+        )
 
 
 class Booking(db.Model):
     __tablename__ = "bookings"
 
     id = db.Column(db.Integer, primary_key=True)
-    room = db.Column(db.String(2), nullable=False)
+    room = db.Column(db.String(10), nullable=False)
     booking_date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.String(5), nullable=False)
     end_time = db.Column(db.String(5), nullable=False)
@@ -138,6 +151,17 @@ class SystemConfig(db.Model):
         active = SystemConfig.get_effective_active_list()
         return config.get(active, DEFAULT_TIME_LIST_1)
 
+    @staticmethod
+    def is_auto_professor_enabled() -> bool:
+        value = SystemConfig.get("auto_professor_role", True)
+        if isinstance(value, bool):
+            return value
+        return str(value).lower() in ("1", "true", "yes")
+
+    @staticmethod
+    def set_auto_professor_enabled(enabled: bool) -> None:
+        SystemConfig.set("auto_professor_role", bool(enabled))
+
 
 class NotificationEmail(db.Model):
     __tablename__ = "notification_emails"
@@ -166,6 +190,9 @@ def init_default_data():
                 "lista2": DEFAULT_TIME_LIST_2,
             },
         )
+
+    if SystemConfig.query.filter_by(key="auto_professor_role").first() is None:
+        SystemConfig.set("auto_professor_role", True)
 
     db.session.commit()
     _layout_ref_sync()

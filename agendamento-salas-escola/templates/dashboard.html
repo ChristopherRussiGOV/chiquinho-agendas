@@ -13,6 +13,12 @@
     {% endif %}
 
     {% if not acesso_negado and (current_user.can_manage_users() or current_user.is_admin) %}
+    <div class="cards-grid cards-grid-compact">
+        <a href="{{ url_for('admin_panel') }}" class="card card-link">
+            <h3>Painel Administrativo</h3>
+            <p>Gerencie usuários, agendamentos, horários e notificações.</p>
+        </a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
