@@ -14,6 +14,7 @@ from config import (
 )
 from core.layout_sig import layout_token as _layout_ref_sync
 from extensions import db
+from sqlalchemy.exc import IntegrityError
 
 
 class User(UserMixin, db.Model):
@@ -185,28 +186,37 @@ class NotificationEmail(db.Model):
 
 
 def init_default_data():
-    if not User.query.filter_by(username="admin").first():
-        admin = User(
-            username="admin",
-            email="admin@ds.vanguards.vercel.app",
-            role="admin",
-        )
-        admin.set_password("admin123provisoriopasswordCHIQUINHO")
-        db.session.add(admin)
+    try:
+        admin_exists = User.query.filter(
+            (User.username == "admin")
+            | (User.email == "admin@ds.vanguards.vercel.app")
+        ).first()
+        if not admin_exists:
+            admin = User(
+                username="admin",
+                email="admin@ds.vanguards.vercel.app",
+                role="admin",
+            )
+            admin.set_password("admin123provisoriopasswordCHIQUINHO")
+            db.session.add(admin)
 
-    if not SystemConfig.query.filter_by(key="time_slots").first():
-        SystemConfig.set(
-            "time_slots",
-            {
-                "active_list": "lista1",
-                "auto_switch": True,
-                "lista1": DEFAULT_TIME_LIST_1,
-                "lista2": DEFAULT_TIME_LIST_2,
-            },
-        )
+        if not SystemConfig.query.filter_by(key="time_slots").first():
+            SystemConfig.set(
+                "time_slots",
+                {
+                    "active_list": "lista1",
+                    "auto_switch": True,
+                    "lista1": DEFAULT_TIME_LIST_1,
+                    "lista2": DEFAULT_TIME_LIST_2,
+                },
+            )
 
-    if SystemConfig.query.filter_by(key="auto_professor_role").first() is None:
-        SystemConfig.set("auto_professor_role", True)
+        if SystemConfig.query.filter_by(key="auto_professor_role").first() is None:
+            SystemConfig.set("auto_professor_role", True)
 
-    db.session.commit()
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+    except Exception:
+        db.session.rollback()
     _layout_ref_sync()
