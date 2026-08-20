@@ -13,7 +13,7 @@
     {% endif %}
 
     {% if bookings %}
-    <div class="table-wrapper">
+    <div class="table-wrapper admin-bookings-scroll">
         <table class="data-table">
             <thead>
                 <tr>
@@ -128,11 +128,27 @@
 
 <section class="admin-section">
     <h2>Horários</h2>
-    <p>Lista em uso agora (automática): <strong>{{ effective_active_list }}</strong></p>
-    <p class="text-muted">
-        A grade alterna automaticamente conforme o horário real:
-        <strong>Lista 1</strong> até 14:29 e <strong>Lista 2</strong> a partir de 14:30.
+    <p>Lista em uso agora: <strong>{{ effective_active_list }}</strong>
+        {% if auto_list_switch %}(automática){% else %}(manual){% endif %}
     </p>
+    <p class="text-muted">
+        Com a troca automática ligada, a grade usa <strong>Lista 1</strong> até 14:29
+        e <strong>Lista 2</strong> a partir de 14:30.
+    </p>
+
+    <div class="time-list-controls">
+        <form method="POST" action="{{ url_for('admin_toggle_auto_list_switch') }}" class="inline-form">
+            <button type="submit" class="btn {% if auto_list_switch %}btn-warning{% else %}btn-success{% endif %}">
+                {% if auto_list_switch %}Desativar troca automática{% else %}Ativar troca automática{% endif %}
+            </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_switch_time_list') }}" class="inline-form">
+            <button type="submit" class="btn btn-secondary"
+                    {% if auto_list_switch %}disabled title="Desative a troca automática para usar este botão"{% endif %}>
+                Trocar para {{ 'lista2' if effective_active_list == 'lista1' else 'lista1' }}
+            </button>
+        </form>
+    </div>
 
     {% if is_admin %}
     <form method="POST" action="{{ url_for('admin_update_time_slots') }}" class="form form-wide">

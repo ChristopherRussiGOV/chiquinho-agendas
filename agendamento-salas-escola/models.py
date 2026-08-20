@@ -129,15 +129,28 @@ class SystemConfig(db.Model):
         if not config:
             config = {
                 "active_list": "lista1",
+                "auto_switch": True,
                 "lista1": DEFAULT_TIME_LIST_1,
                 "lista2": DEFAULT_TIME_LIST_2,
             }
             SystemConfig.set("time_slots", config)
             db.session.commit()
+        if "auto_switch" not in config:
+            config["auto_switch"] = True
+            SystemConfig.set("time_slots", config)
+            db.session.commit()
         return config
 
     @staticmethod
+    def is_auto_list_switch_enabled() -> bool:
+        config = SystemConfig.get_time_config()
+        return bool(config.get("auto_switch", True))
+
+    @staticmethod
     def get_effective_active_list() -> str:
+        config = SystemConfig.get_time_config()
+        if not config.get("auto_switch", True):
+            return config.get("active_list", "lista1")
         now = datetime.now(ZoneInfo(TIMEZONE))
         switch_minutes = LISTA2_SWITCH_HOUR * 60 + LISTA2_SWITCH_MINUTE
         current_minutes = now.hour * 60 + now.minute
@@ -186,6 +199,7 @@ def init_default_data():
             "time_slots",
             {
                 "active_list": "lista1",
+                "auto_switch": True,
                 "lista1": DEFAULT_TIME_LIST_1,
                 "lista2": DEFAULT_TIME_LIST_2,
             },

@@ -189,6 +189,7 @@ def build_schedule_context(selected_date: date):
         "schedule_rows": rows,
         "schedule_grid": grid,
         "active_list_name": SystemConfig.get_effective_active_list(),
+        "auto_list_switch": SystemConfig.is_auto_list_switch_enabled(),
     }
 
 
@@ -424,11 +425,7 @@ def agendamentos():
             **context,
         )
 
-    if current_user.is_coordenador:
-        context = build_schedule_context(selected_date)
-        return render_template("agendamentos.html", view_mode="grid", **context)
-
-    if current_user.role in ("admin", "moderador"):
+    if current_user.role in ("admin", "moderador", "coordenador"):
         query = Booking.query.filter_by(booking_date=selected_date)
         bookings = query.order_by(Booking.start_time, Booking.room).all()
         prev_date = (selected_date - timedelta(days=1)).isoformat()
@@ -566,6 +563,7 @@ def admin_panel():
         users=users,
         time_config=time_config,
         effective_active_list=SystemConfig.get_effective_active_list(),
+        auto_list_switch=SystemConfig.is_auto_list_switch_enabled(),
         notification_emails=notification_emails,
         is_admin=current_user.is_admin,
         auto_professor_enabled=SystemConfig.is_auto_professor_enabled(),
@@ -678,13 +676,37 @@ def admin_update_time_slots():
     return redirect(url_for("admin_panel"))
 
 
+@app.route("/admin/time-slots/auto-switch", methods=["POST"])
+@role_required("admin", "moderador")
+def admin_toggle_auto_list_switch():
+    config_data = SystemConfig.get_time_config()
+    currently_auto = bool(config_data.get("auto_switch", True))
+    if currently_auto:
+        config_data["active_list"] = SystemConfig.get_effective_active_list()
+        config_data["auto_switch"] = False
+        flash("Troca automática desativada. Use o botão ao lado para alternar as listas.", "success")
+    else:
+        config_data["auto_switch"] = True
+        flash("Troca automática ativada: Lista 1 até 14:29 e Lista 2 a partir de 14:30.", "success")
+    SystemConfig.set("time_slots", config_data)
+    db.session.commit()
+    return redirect(url_for("admin_panel"))
+
+
 @app.route("/admin/time-slots/switch", methods=["POST"])
 @role_required("admin", "moderador")
 def admin_switch_time_list():
-    flash(
-        "A alternância de horários é automática: Lista 1 até 14:29 e Lista 2 a partir de 14:30.",
-        "info",
+    config_data = SystemConfig.get_time_config()
+    if config_data.get("auto_switch", True):
+        flash("Desative a troca automática para alternar a lista manualmente.", "error")
+        return redirect(url_for("admin_panel"))
+
+    config_data["active_list"] = (
+        "lista2" if config_data.get("active_list") == "lista1" else "lista1"
     )
+    SystemConfig.set("time_slots", config_data)
+    db.session.commit()
+    flash(f"Lista ativa alterada para {config_data['active_list']}.", "success")
     return redirect(url_for("admin_panel"))
 
 
