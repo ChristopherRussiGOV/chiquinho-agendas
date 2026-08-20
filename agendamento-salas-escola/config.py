@@ -20,7 +20,7 @@ else:
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # E-mails institucionais permitidos (ajuste o domínio da sua escola)
-ALLOWED_EMAIL_DOMAINS = ["aluno.educacao.sp.gov.br", "professor.educacao.sp.gov.br"]
+ALLOWED_EMAIL_DOMAINS = ["prof.educacao.sp.gov.br", "professor.educacao.sp.gov.br"]
 
 # SMTP para notificações (opcional — deixe vazio para registrar no console)
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
