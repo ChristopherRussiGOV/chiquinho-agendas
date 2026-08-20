@@ -33,13 +33,7 @@
                     <td><strong>{{ b.booking_date.strftime('%d/%m/%Y') }}</strong></td>
                     <td><strong>{{ b.start_time }}</strong></td>
                     <td><strong>{{ b.end_time }}</strong></td>
-                    <td>
-                        {% if b.status == 'bloqueado' %}
-                        <strong>BLOQUEADO</strong>
-                        {% else %}
-                        <strong>{{ b.teacher.username }}</strong>
-                        {% endif %}
-                    </td>
+                    <td><strong>{{ b.teacher.username }}</strong></td>
                     <td><span class="badge badge-status badge-{{ b.status }}">{{ b.status }}</span></td>
                 </tr>
                 {% endfor %}
